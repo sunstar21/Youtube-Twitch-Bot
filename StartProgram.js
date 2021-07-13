@@ -57,7 +57,7 @@ axios
                             var dp = d[i].thumbnail_url.split("-preview")[0];
                             dp+=".mp4"
                             var nm = d[i].creator_name;
-                            console.log("The url is "+url+" and link is "+dp+" and name is "+nm+" in "+i);
+                            console.log("The downloadable link is "+dp+" and thumbnail is "+d[i].thumbnail_url+" and name is "+nm+" in "+i);
                         }
                     });  
                   }
