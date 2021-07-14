@@ -167,7 +167,6 @@ axios
                             const dl = new DownloaderHelper(dp , "/Users/rahilshariff/Downloads");
                             dl.on('end', () => console.log('Download Completed'))
                             dl.start();
-                            break;
                             var opti = {
                                 host: "youtube.googleapis.com",
                                 path: `/youtube/v3/videos?part=id&notifySubscribers=true&key=${access_token}`,
@@ -196,7 +195,6 @@ axios
                             console.log("th5")
                             console.log(data[i]);
                             console.log("The downloadable link is "+dp+" and thumbnail is "+d[i].thumbnail_url+" and name is "+nm3+" in "+i);
-                            break;
                         }
                     });  
                   }
