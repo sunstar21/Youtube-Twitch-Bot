@@ -2,6 +2,8 @@ var ClientId = "xxvz2mqd0a3dz1v6kxyr9et4dueukh";
 var ClientSecret = "dz04478gkk40xmzerpnm02c9zjd9m5";
 const http = require('https');
 const axios = require('axios')
+var Youtube = require('youtube-video-api')
+const { DownloaderHelper } = require('node-downloader-helper');
 var url = (`https://id.twitch.tv/oauth2/token?grant_type=client_credentials&client_id=${ClientId}&client_secret=${ClientSecret}`);
 axios
   .post(url)
@@ -53,10 +55,39 @@ axios
                         st = JSON.parse(st);
                         var d = st.data;
                         for(var i = 0; i < d.length; i++) {
-                            var url = d[i].url;
                             var dp = d[i].thumbnail_url.split("-preview")[0];
                             dp+=".mp4"
                             var nm3 = data[i].name;
+                            //onst dl = new DownloaderHelper(dp , "/Users/rahilshariff/Downloads");
+                            //dl.on('end', () => console.log('Download Completed'))
+                            //dl.start(); 
+                            
+                            var youtube = Youtube({ 
+                                video: {
+                                    part: 'status,snippet' 
+                                }
+                            })
+                            var params = {
+                                resource: {
+                                snippet: {
+                                    title: nm3,
+                                    description: `Thank you for watching! Check out ${d[i].creator_name} on twitch for more videos by him! Like and Subscribe for more!`
+                                },
+                                status: {
+                                    privacyStatus: 'public'
+                                    }
+                                }
+                            }
+                            youtube.authenticate(ClientId, ClientSecret, function (err, tokens) {
+                                    if (err) return console.error('Cannot authenticate:', err)
+                                        console.log("Here")
+                                        //youtube.upload(dp, params, function (err, video) {
+                                    //if (err) {
+                                      //  return console.error('Cannot upload video:', err)
+                                   // }
+                                    //console.log('Video was uploaded with ID:', video.id)
+                                //})
+                            })
                             console.log(data[i]);
                             console.log("The downloadable link is "+dp+" and thumbnail is "+d[i].thumbnail_url+" and name is "+nm3+" in "+i);
                         }
