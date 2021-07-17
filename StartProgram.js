@@ -1,15 +1,18 @@
 var ClientId = "xxvz2mqd0a3dz1v6kxyr9et4dueukh";
 var ClientSecret = "dz04478gkk40xmzerpnm02c9zjd9m5";
 var fs = require('fs');
+var Youtube = require('youtube-video-api')
 var readline = require('readline');
 var {google} = require('googleapis');
 var sleep = require('sleep')
+var biginfo = [];
 var redirectUrl;
 var oauth2Client;
 var OAuth2 = google.auth.OAuth2;
 const http = require('https');
 const axios = require('axios')
 const { DownloaderHelper } = require('node-downloader-helper');
+const { time } = require('console');
 var SCOPES = ['https://www.googleapis.com/auth/youtube.upload','https://www.googleapis.com/auth/youtube.readonly'];
 var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
@@ -129,7 +132,7 @@ axios
         }
     }
     // A chunk of data has been received.
-    callback = function(response) {
+    callback = async function(response) {
         var str = ''
         response.on('data', function (chunk) {
           str += chunk;
@@ -140,24 +143,83 @@ axios
             for(var i = 0; i < data.length; i++) {
                var id = data[i].id;
                var name = data[i].name;
+               if(name==="Fortnite") {
                 console.log("Id of "+id+" and name of "+name)
-                  var op = {
+                debugger;
+                var dts2 = new Date();
+                var dts = new Date();
+                dts.setDate(dts.getDate() - 1);
+                var styr = JSON.stringify(dts2.getUTCFullYear());
+                var stmn = JSON.stringify(dts2.getUTCMonth());
+                var stdy = JSON.stringify(dts2.getUTCDate());
+                var dhr = JSON.stringify(dts2.getUTCHours());
+                var dm = JSON.stringify(dts2.getUTCMinutes());
+                var ds = JSON.stringify(dts2.getUTCSeconds());
+                if (stmn.length === 1) stmn = "0" + stmn;
+                if (stdy.length === 1) stdy = "0" + stdy;
+                if (dhr.length === 1) stdy = "0" + dhr;
+                if (dm.length === 1) stdm = "0" + dm;
+                if (ds.length === 1) ds = "0" + ds;
+                var styr2 = JSON.stringify(dts.getUTCFullYear());
+                var stmn2 = JSON.stringify(dts.getUTCMonth());
+                var stdy2 = JSON.stringify(dts.getUTCDate());
+                var dhr2 = JSON.stringify(dts.getUTCHours())
+                var dm2 = JSON.stringify(dts.getUTCMinutes())
+                var ds2 = JSON.stringify(dts.getUTCSeconds());
+                if (stmn2.length === 1) stmn2 = "0" + stmn2;
+                if (stdy2.length === 1) stdy2 = "0" + stdy2;
+                if (dhr2.length === 1) stdy2 = "0" + dhr2;
+                if (dm2.length === 1) stdm2 = "0" + dm2;
+                if (ds2.length === 1) ds2 = "0" + ds2;
+                var start_date = styr + "-" + stmn + "-" + stdy + "T" + dhr + ":" + dm + ":" + ds + "Z";
+                var end_date = styr2 + "-" + stmn2 + "-" + stdy2 + "T" + dhr2 + ":" + dm2 + ":" + ds2 + "Z";
+                var op = {
                     host: "api.twitch.tv",
                     port: 443,
-                    path: `/helix/clips?game_id=${id}&limit=100&period=day&trending=true`,
+                    path: `/helix/clips?game_id=${id}&first=100&started_at=${end_date}&ended_at=${start_date}`,
                     method: "GET",
                     headers: {
                         "Client-Id": ClientId,
                         "Authorization": `Bearer ${access_token}` 
                     }
                   }
-                  cbak = function(respo) {
+                  cbak = async function(respo) {
                     var st = ''
-                    respo.on('data', function (chk) {
+                    respo.on('data', async function (chk) {
                       st += chk;
                     }); 
-                    respo.on('end', function () {
+                    respo.on('end', async function () {
                         st = JSON.parse(st);
+                        d = st.data;
+                        var info = {};
+                        console.log("CLINET ID"+clientId+" "+ClientId);
+                        console.log("ACCESS_TOKEN"+access_token)
+                        console.log(d);
+                        const annoying = new Promise((resolve, reject) => {
+                          for(var i = 0; i < d.length; i++) {
+                            if(i>100) break;
+                            var dp = d[i].thumbnail_url.split("-preview")[0]
+                            dp+=".mp4";
+                            var nam_e = d[i].title;
+                            if(/[a-z]+/.test(nam_e)) {
+                            var creatername = d[i].creator_name;
+                            var url = d[i].thumbnail_url;
+                            var downloadname = dp.split(".tv/")[1].split(".mp4")[0];
+                            var enter = [dp, nam_e, creatername, downloadname, url];
+                            console.log(enter)
+                            biginfo.push(enter);
+                            break;
+                            }
+                          }
+                          resolve("Done")
+                          //var t = isthereanyleft(access_token);
+                          //if(t === "DONE") {
+                            //console.log("done");
+                            //resolve("done");
+                          //}
+                        })
+                        await annoying;
+                        /*st = JSON.parse(st);
                         var d = st.data;
                         var info = {};
                         var counter = 0;
@@ -175,15 +237,18 @@ axios
                               console.log(creatername);
                               info[counter]=[downloadname, dp, access_token, creatername];
                               counter++;
+                              //need to do this not aysnc with a promise
                               const dl = new DownloaderHelper(dp , "/Users/rahilshariff/newd");
-                              dl.on('end', () => comp(info, counter, downloadname))
+                              dl.on('end', () => comp(info, counter))
                               dl.start();
                               console.log("The downloadable link is "+dp+" and thumbnail is "+d[i].thumbnail_url+" and path is "+downloadname+"and name is "+nm3+" in "+i);
-                        }
+                              
+                        }*/
                     });  
                   }
                   http.request(op, cbak).end(); 
             }
+          }
         });
     }  
     http.request(options, callback).end(); 
@@ -191,48 +256,84 @@ axios
   .catch(error => {
     console.error(error)
 })
+async function isthereanyleft(access_token/*need dp, access_token, and url*/) {
+  if(biginfo.length>0) {
+    var dp = biginfo[0][0];
+    var url = biginfo[0][4];
+    const dl = new DownloaderHelper(dp, "/Users/rahilshariff/newd");
+    console.log(dp);
+      dl.on('end', () => {
+        comp(access_token, url);
+        console.log("Ended?")
+        biginfo.shift();
+        return isthereanyleft(access_token);
+      })
+    dl.start();
+  } else /*FINALLY DONE*/ return "DONE"
+}
 
-function comp(info, ctr, path) {
-  counter = 0;
-  for(var i = 0; i < ctr; i++) {
-    var dn = info[counter][0];
-    var dl = info[counter][1];
-    var at = info[counter][2];
-    var cn = info[counter][3];
+async function comp(at, url) {
+  //need to do this after download
+  sleep.sleep(900)
+    console.log("in comp")
+    var dn = biginfo[0][3];
+    dn+=".mp4"
+    var dl = biginfo[0][0];
+    var cn = biginfo[0][2];
+    var nm3 = biginfo[0][1];
+    console.log(dn);
     console.log(`download name is ${dn} download link is ${dl} access_token is ${at} creator name is ${cn}`)
-    counter++;
-  }
-  try {
-    fs.unlinkSync("./"+path+".mp4");
-    console.log("File removed:", path);
-  } catch (err) {
-    console.error(err);
-  }
-  return;
-  var opti = {
-      host: "youtube.googleapis.com",
-      path: `/youtube/v3/videos?part=id&notifySubscribers=true&key=${access_token}`,
-      port: 443,
-      method: "POST",
-      headers: {
-      'Authorization': 'Bearer [YOUR_ACCESS_TOKEN]',
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-      },
-      data: {
-      "snippet":
-          {"title": nm3,"description": `Thank you for watching! Check out ${creatername} on twitch for more videos by him! Like and Subscribe for more!`,"tags":["Clips","Twitch", "Youtube", "Video", "Awesome", "Short", "Fortnite", "Awe-Inspiring"]},"status":{"privacyStatus":"public"},"fileDetails":{"fileName": `/Users/rahilshariff/Downloads/${downloadname}`}
+    const dir = '/Users/rahilshariff/newd';
+  // delete directory recursively
+  //upload HERE before deleting directory
+    var youtube = Youtube({ 
+      video: {
+        part: 'status,snippet' 
       }
-  }
-  const req = https.request(opti, res => {
-      console.log(res)
-      /*res.on('data', d => {
-      process.stdout.write(d)
+    })
+    var params = {
+      resource: {
+          "snippet": {
+              "description": `Thank you for watching! Check out ${cn} on twitch for more videos by him! Like and Subscribe for more!`,
+              "title": nm3,
+              "tags": [
+                "Clips",
+                "Twitch",
+                "Youtube",
+                "Video",
+                "Awesome",
+                "Short",
+                "Fortnite",
+                "Awe-Inspiring",
+                cn, 
+                nm3
+              ],
+              "thumbnails": {
+                "medium": {
+                  "url": url
+                }
+            }
+          }
+      }
+    }
+    console.log(params);
+    youtube.authenticate(clientId, clientSecret, function (err, tokens) {
+      if (err) return console.error('Cannot authenticate:', err)
+      uploadVideo()
+    })
+    function uploadVideo() {
+      youtube.upload(`/Users/rahilshariff/newd/${dn}`, params, function (err, video) {
+      // 'path/to/video.mp4' can be replaced with readable stream. 
+      // When passing stream adding mediaType to params is advised.
+        if (err) {
+          return console.error('Cannot upload video:', err)
+        }
+        console.log('Video was uploaded with ID:', video.id)    
+      /*// this is just a test! delete it
+      youtube.delete(video.id, function (err) {
+        if (!err) console.log('Video was deleted')
       })*/
-  })
-  req.on('error', error => {
-      console.error(error)
-  })
-  req.end();
-
+      })
+    }
+  return;
 }
