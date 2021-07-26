@@ -1,3 +1,5 @@
+const { resolve } = require('path');
+
 var callfuncagain = false;
 var dlen = 0;
 function runProgram() {
@@ -187,31 +189,6 @@ function runProgram() {
                             }
                           })
                           await annoying;
-                          /*st = JSON.parse(st);
-                          var d = st.data;
-                          var info = {};
-                          var counter = 0;
-                          for(var i = 0; i < d.length; i++) {
-                              sleep.sleep(10)
-                                var dp = d[i].thumbnail_url.split("-preview")[0];
-                                dp+=".mp4"
-                                var nm3 = d[i].title;
-                                console.log('test')
-                                console.log(d[i].title);
-                                var download = dp.split(".tv/")[1];
-                                var downloadname = download.split(".mp4")[0];
-                                console.log(downloadname);
-                                var creatername = d[i].creator_name;
-                                console.log(creatername);
-                                info[counter]=[downloadname, dp, access_token, creatername];
-                                counter++;
-                                //need to do this not aysnc with a promise
-                                const dl = new DownloaderHelper(dp , "/Users/rahilshariff/newd");
-                                dl.on('end', () => comp(info, counter))
-                                dl.start();
-                                console.log("The downloadable link is "+dp+" and thumbnail is "+d[i].thumbnail_url+" and path is "+downloadname+"and name is "+nm3+" in "+i);
-                                
-                          }*/
                       });  
                     }
                     http.request(op, cbak).end(); 
@@ -228,15 +205,11 @@ function runProgram() {
     if(biginfo.length>0) {
       var dp = biginfo[0][0];
       var url = biginfo[0][4];
-      const dl = new DownloaderHelper(dp, "/Users/rahilshariff/newd");
       console.log(dp);
-        dl.on('end', () => {
-          comp(access_token, url);
-          console.log("Ended?")
-          biginfo.shift();
-          return isthereanyleft(access_token);
-        })
-      dl.start();
+      comp(access_token, url);
+      console.log("Ended?")
+      biginfo.shift();
+      return isthereanyleft(access_token);
     } else {
       console.log("The function is over, 24 hours has past call function again");
       callfuncagain = true;
@@ -246,7 +219,6 @@ function runProgram() {
 
   async function comp(at, url) {
     //need to do this after download
-    sleep.sleep(Math.floor(60/(dlen/24)*60))
       console.log("in comp")
       var dn = biginfo[0][3];
       dn+=".mp4"
@@ -266,7 +238,7 @@ function runProgram() {
       var params = {
         resource: {
             "snippet": {
-                "description": `Thank you for watching! Check out ${cn} on twitch for more videos by him! Like and Subscribe for more!`,
+                "description": `Thank you for watching! \n Check out ${cn} on twitch for more videos by him! \n Shoutouts EVERY WEEK to people who like, subscribe, and comment to my youtube videos! \n ❤️❤️❤️ Subscribe and I will love you forever ❤️❤️❤️.  \n If you are a streamer and want your clip removed, please let me know on my discord or by email. Enjoy!`,
                 "title": nm3,
                 "tags": [
                   "Clips",
@@ -298,21 +270,40 @@ function runProgram() {
         }
         console.log("Uploading")
         var t = new Date();
-        youtube.upload(`/Users/rahilshariff/newd/${dn}`, params, function (err, video) {
-        // 'path/to/video.mp4' can be replaced with readable stream. 
-        // When passing stream adding mediaType to params is advised.
-          if (err) {
-            tv++;
-            uploadVideo();
+        const path = `/Users/rahilshariff/newd/${dn}`
+        try {
+          if (fs.existsSync(path)) {
+            console.log("File exists, go to next video")
+            isthereanyleft();
+            return;
+          } else {
+            console.log("FILE DOESN'T EXIST");
+            const dl = new DownloaderHelper(dn, "/Users/rahilshariff/newd");
+            dl.on('end', () => {
+            sleep.sleep(Math.floor(60/(dlen/24)*60))
+            youtube.upload(`/Users/rahilshariff/newd/${dn}`, params, function (err, video) {
+            // 'path/to/video.mp4' can be replaced with readable stream. 
+            // When passing stream adding mediaType to params is advised.
+              if (err) {
+                tv++;
+                uploadVideo();
+              } else {
+                console.log(t);
+                //Can't delete otherwise can't see if file already exists
+            }
+            /*// this is just a test! delete it
+            youtube.delete(video.id, function (err) {
+              if (!err) console.log('Video was deleted')
+            })*/
+            })
+          })
+          dl.start();
           }
-          console.log(t);
-        /*// this is just a test! delete it
-        youtube.delete(video.id, function (err) {
-          if (!err) console.log('Video was deleted')
-        })*/
-        })
+        } catch(err) {
+          console.error(err)
+        }
       }
-    return;
+      return;
   }
 }
 runProgram();
